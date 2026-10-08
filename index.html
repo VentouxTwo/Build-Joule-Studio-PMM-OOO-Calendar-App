@@ -503,13 +503,7 @@
           Team Notification Attendees
           <span class="badge badge-free" style="margin-left:8px">Event shown as free</span>
         </div>
-
-        <div class="attendee-chips" id="attendeeChips">
-          <!-- DL chip rendered by JS so it can be removed -->
-        </div>
-
-        <div class="email-list" id="emailList"></div>
-        <button class="btn-ghost" onclick="addEmail()">+ Add email address</button>
+        <p style="font-size:0.8125rem;color:var(--sap-text-secondary);margin-bottom:16px">Add attendees directly in Outlook after importing.</p>
 
       </div>
 
@@ -531,7 +525,20 @@
             Download Both Files
           </button>
         </div>
-        <p class="hint">Drag and drop each .ics file directly into your Outlook calendar view. It will open a preview/edit window where you can review all the details and then click import when you are ready.</p>
+        <div class="hint">
+          <strong style="color:var(--sap-text);display:block;margin-bottom:8px">How to import</strong>
+          <ul style="text-align:left;padding-left:18px;line-height:2">
+            <li>Drag and drop the <strong>.ics file</strong> into your Outlook calendar view</li>
+            <li>Review the preview and click <strong>Import</strong></li>
+          </ul>
+          <strong style="color:var(--sap-text);display:block;margin:10px 0 8px">Sending the Team Notification invite</strong>
+          <ul style="text-align:left;padding-left:18px;line-height:2">
+            <li>After importing, find the event on your calendar</li>
+            <li>Double-click to open it, then click <strong>Edit</strong></li>
+            <li>Add <strong>DL BTP Marketing and Solution SAP Build</strong> and any other recipients in the <strong>To</strong> field</li>
+            <li>Click <strong>Send</strong></li>
+          </ul>
+        </div>
       </div>
 
     </div>
@@ -693,26 +700,17 @@
       ].filter(Boolean).join('\r\n');
     }
 
-    function buildTeamIcs(start, end, title, description, extraEmails) {
+    function buildTeamIcs(start, end, title, description) {
       const dtStart = toIcsDate(start);
       const dtEnd = nextDay(end);
       const desc = description.replace(/\n/g, '\\n');
-
-      const allAttendees = [
-        ...(dlIncluded ? [DEFAULT_DL_EMAIL] : []),
-        ...extraEmails
-      ];
-
-      const attendeeLines = allAttendees.map(email =>
-        `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=FALSE:mailto:${email}`
-      );
 
       return [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
         'PRODID:-//OOO Tool//EN',
         'CALSCALE:GREGORIAN',
-        'METHOD:REQUEST',
+        'METHOD:PUBLISH',
         'BEGIN:VEVENT',
         `UID:${uid()}`,
         `DTSTAMP:${nowStamp()}`,
@@ -725,7 +723,6 @@
         'X-MICROSOFT-CDO-BUSYSTATUS:FREE',
         'X-MICROSOFT-CDO-ALLDAYEVENT:TRUE',
         'X-MICROSOFT-DISALLOW-COUNTER:TRUE',
-        ...attendeeLines,
         'END:VEVENT',
         'END:VCALENDAR'
       ].filter(Boolean).join('\r\n');
@@ -773,7 +770,7 @@
       if (type === 'team' || type === 'both') {
         setTimeout(() => {
           triggerDownload(
-            buildTeamIcs(v.start, v.end, v.title, v.description, v.extraEmails),
+            buildTeamIcs(v.start, v.end, v.title, v.description),
             `${safeName}_team_notification.ics`
           );
         }, type === 'both' ? 300 : 0);

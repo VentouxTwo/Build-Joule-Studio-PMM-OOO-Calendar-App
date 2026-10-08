@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OOO Calendar Generator</title>
+  <link rel="stylesheet" href="https://ui5.sap.com/resources/sap/ui/core/themes/sap_horizon/library.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=72:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sap-brand: #0070F2;
+      --sap-brand-hover: #0064D9;
+      --sap-shell-bg: #1D2D3E;
+      --sap-bg: #F5F6F7;
+      --sap-white: #FFFFFF;
+      --sap-border: #D9D9D9;
+      --sap-border-focus: #0070F2;
+      --sap-text: #32363A;
+      --sap-text-secondary: #6A6D70;
+      --sap-text-label: #32363A;
+      --sap-success: #188918;
+      --sap-success-bg: #F1F8F1;
+      --sap-error: #BB0000;
+      --sap-error-bg: #FFEAEA;
+      --sap-info-bg: #EAF1FB;
+      --sap-info-text: #0064D9;
+      --sap-separator: #E5E5E5;
+      --sap-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      --sap-radius: 8px;
+      --sap-radius-sm: 4px;
+    }
+
+    body {
+      font-family: '72', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--sap-bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Shell bar */
+    .shell {
+      background: var(--sap-shell-bg);
+      height: 44px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .shell-logo {
+      height: 22px;
+      width: auto;
+      display: flex;
+      align-items: center;
+    }
+
+    .shell-logo svg {
+      height: 22px;
+      width: auto;
+    }
+
+    .shell-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #FFFFFF;
+    }
+
+    /* Main layout */
+    .main {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 32px 24px;
+    }
+
+    .card {
+      background: var(--sap-white);
+      border-radius: var(--sap-radius);
+      box-shadow: var(--sap-shadow);
+      width: 100%;
+      max-width: 580px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 20px 28px 18px;
+      border-bottom: 1px solid var(--sap-separator);
+    }
+
+    .card-header h1 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--sap-text);
+    }
+
+    .card-header p {
+      font-size: 0.8125rem;
+      color: var(--sap-text-secondary);
+      margin-top: 4px;
+    }
+
+    .card-body { padding: 24px 28px; }
+
+    /* Section headers */
+    .section-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--sap-text-secondary);
+      margin: 0 0 14px;
+    }
+
+    .section-label:not(:first-child) { margin-top: 24px; }
+
+    /* Fields */
+    .field { margin-bottom: 16px; }
+
+    .field:last-of-type { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--sap-text-label);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="email"],
+    textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--sap-border);
+      border-radius: var(--sap-radius-sm);
+      font-size: 0.875rem;
+      font-family: inherit;
+      color: var(--sap-text);
+      background: var(--sap-white);
+      transition: border-color 0.12s, box-shadow 0.12s;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--sap-border-focus);
+      box-shadow: 0 0 0 2px rgba(0,112,242,0.12);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 68px;
+      line-height: 1.5;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--sap-separator);
+      margin: 24px 0;
+    }
+
+    /* DL chip — removable */
+    .attendee-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--sap-info-bg);
+      color: var(--sap-info-text);
+      border: 1px solid #C0D8F8;
+      border-radius: 16px;
+      padding: 4px 10px 4px 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: default;
+    }
+
+    .chip-label {
+      cursor: help;
+      border-bottom: 1px dashed #7AB3F0;
+    }
+
+    .chip-remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--sap-info-text);
+      font-size: 0.75rem;
+      line-height: 1;
+      padding: 0 2px;
+      border-radius: 50%;
+      opacity: 0.6;
+      transition: opacity 0.1s;
+      display: flex;
+      align-items: center;
+    }
+
+    .chip-remove:hover { opacity: 1; }
+
+    /* Extra email rows */
+    .email-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .email-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .email-row input { flex: 1; }
+
+    .btn-icon-remove {
+      background: none;
+      border: 1px solid var(--sap-border);
+      border-radius: var(--sap-radius-sm);
+      width: 34px;
+      height: 34px;
+      cursor: pointer;
+      color: var(--sap-text-secondary);
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      transition: border-color 0.12s, color 0.12s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-icon-remove:hover {
+      border-color: var(--sap-error);
+      color: var(--sap-error);
+    }
+
+    /* Add email button */
+    .btn-ghost {
+      background: none;
+      border: 1px dashed var(--sap-border);
+      border-radius: var(--sap-radius-sm);
+      padding: 7px 14px;
+      font-size: 0.8125rem;
+      font-family: inherit;
+      color: var(--sap-text-secondary);
+      cursor: pointer;
+      width: 100%;
+      margin-top: 8px;
+      transition: border-color 0.12s, color 0.12s;
+      text-align: center;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--sap-brand);
+      color: var(--sap-brand);
+    }
+
+    /* Actions */
+    .card-footer {
+      padding: 20px 28px;
+      border-top: 1px solid var(--sap-separator);
+      background: #FAFAFA;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: var(--sap-radius-sm);
+      font-size: 0.875rem;
+      font-family: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background 0.12s, box-shadow 0.12s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-emphasized {
+      background: var(--sap-brand);
+      color: white;
+    }
+
+    .btn-emphasized:hover {
+      background: var(--sap-brand-hover);
+      box-shadow: 0 2px 6px rgba(0,112,242,0.3);
+    }
+
+    .btn-success {
+      background: var(--sap-success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #146D14;
+      box-shadow: 0 2px 6px rgba(24,137,24,0.3);
+    }
+
+    .btn-neutral {
+      grid-column: 1 / -1;
+      background: #32363A;
+      color: white;
+      padding: 11px;
+      font-size: 0.9rem;
+    }
+
+    .btn-neutral:hover { background: #23272A; }
+
+    /* Status badges */
+    .badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      border-radius: 3px;
+      padding: 2px 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-ooo {
+      background: var(--sap-error-bg);
+      color: var(--sap-error);
+    }
+
+    .badge-free {
+      background: var(--sap-success-bg);
+      color: var(--sap-success);
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--sap-text-secondary);
+      margin-top: 12px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* Today badge on date inputs */
+    .date-wrapper { position: relative; }
+
+    .today-badge {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--sap-brand);
+      background: var(--sap-info-bg);
+      border-radius: 3px;
+      padding: 1px 5px;
+      pointer-events: none;
+    }
+
+    /* Custom date picker trigger */
+    .date-input-wrapper {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .date-display {
+      width: 100%;
+      padding: 8px 36px 8px 10px;
+      border: 1px solid var(--sap-border);
+      border-radius: var(--sap-radius-sm);
+      font-size: 0.875rem;
+      font-family: inherit;
+      color: var(--sap-text);
+      background: var(--sap-white);
+      cursor: pointer;
+      transition: border-color 0.12s, box-shadow 0.12s;
+      user-select: none;
+    }
+
+    .date-display.placeholder { color: var(--sap-text-secondary); }
+
+    .date-display:hover, .date-display:focus {
+      border-color: var(--sap-border-focus);
+      box-shadow: 0 0 0 2px rgba(0,112,242,0.12);
+      outline: none;
+    }
+
+    .date-icon {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--sap-text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* Hidden native date input for picker */
+    .date-native {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      top: 0; left: 0;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    /* Button sub-descriptions */
+    .btn-desc {
+      font-size: 0.7rem;
+      font-weight: 400;
+      opacity: 0.82;
+      margin-top: 2px;
+      display: block;
+      line-height: 1.3;
+    }
+
+    .btn .btn-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .btn-top-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="shell">
+    <div class="shell-logo" style="font-size:1.4rem;line-height:1">🌴</div>
+    <span class="shell-title">OOO Calendar Generator</span>
+  </div>
+
+  <div class="main">
+    <div class="card">
+      <div class="card-header">
+        <h1>Out of Office Calendar Events</h1>
+        <p>Fill in the details below and download your .ics files to import into Outlook.</p>
+      </div>
+
+      <div class="card-body">
+
+        <div class="section-label">Event Details</div>
+
+        <div class="row field">
+          <div>
+            <label>Start Date</label>
+            <div class="date-input-wrapper">
+              <div class="date-display placeholder" id="startDisplay" tabindex="0">Select date</div>
+              <span class="date-icon">&#128197;</span>
+              <input type="date" id="startDate" class="date-native" />
+            </div>
+          </div>
+          <div>
+            <label>End Date</label>
+            <div class="date-input-wrapper">
+              <div class="date-display placeholder" id="endDisplay" tabindex="0">Select date</div>
+              <span class="date-icon">&#128197;</span>
+              <input type="date" id="endDate" class="date-native" />
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="title">Event Title</label>
+          <input type="text" id="title" placeholder="Out of Office – Annual Leave" />
+        </div>
+
+        <div class="field">
+          <label for="description">Description <span style="color:var(--sap-text-secondary);font-weight:400">(optional)</span></label>
+          <textarea id="description" placeholder="I'm OOO and will return on [date]. For urgent matters contact..."></textarea>
+        </div>
+
+        <hr class="divider" />
+
+        <div class="section-label">
+          Team Notification Attendees
+          <span class="badge badge-free" style="margin-left:8px">Event shown as free</span>
+        </div>
+
+        <div class="attendee-chips" id="attendeeChips">
+          <!-- DL chip rendered by JS so it can be removed -->
+        </div>
+
+        <div class="email-list" id="emailList"></div>
+        <button class="btn-ghost" onclick="addEmail()">+ Add email address</button>
+
+      </div>
+
+      <div class="card-footer">
+        <div class="actions">
+          <button class="btn btn-emphasized" onclick="download('personal')">
+            <span class="btn-inner">
+              <span class="btn-top-row">Personal OOO <span class="badge badge-ooo">Busy</span></span>
+              <span class="btn-desc">Blocks your calendar</span>
+            </span>
+          </button>
+          <button class="btn btn-success" onclick="download('team')">
+            <span class="btn-inner">
+              <span class="btn-top-row">Team Notification <span class="badge badge-free">Free</span></span>
+              <span class="btn-desc">Event does not block your calendar</span>
+            </span>
+          </button>
+          <button class="btn btn-neutral" onclick="download('both')">
+            Download Both Files
+          </button>
+        </div>
+        <p class="hint">Drag and drop each .ics file directly into your Outlook calendar view. It will open a preview/edit window where you can review all the details and then click import when you are ready.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_DL_EMAIL = 'DL_69A8EC209E39F6ABF7668AA8@global.corp.sap';
+    const DEFAULT_DL_LABEL = 'DL BTP Marketing and Solution SAP Build';
+    let dlIncluded = true;
+
+    // Set today's date in local timezone and show badge
+    function localDateString(offsetDays = 0) {
+      const d = new Date();
+      d.setDate(d.getDate() + offsetDays);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function formatDisplayDate(dateStr) {
+      if (!dateStr) return null;
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const date = new Date(y, m - 1, d);
+      const today = localDateString();
+      const todayLabel = dateStr === today ? ' (Today)' : '';
+      return date.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) + todayLabel;
+    }
+
+    function syncDisplay(inputId, displayId) {
+      const val = document.getElementById(inputId).value;
+      const display = document.getElementById(displayId);
+      if (val) {
+        display.textContent = formatDisplayDate(val);
+        display.classList.remove('placeholder');
+      } else {
+        display.textContent = 'Select date';
+        display.classList.add('placeholder');
+      }
+    }
+
+    // Init both date inputs to today and open on today's month
+    const todayStr = localDateString();
+    document.getElementById('startDate').value = todayStr;
+    document.getElementById('startDate').min = '';
+    document.getElementById('endDate').value = todayStr;
+    document.getElementById('endDate').min = '';
+    syncDisplay('startDate', 'startDisplay');
+    syncDisplay('endDate', 'endDisplay');
+
+    // Clicking the display div opens the native date picker
+    document.getElementById('startDisplay').addEventListener('click', () => document.getElementById('startDate').showPicker());
+    document.getElementById('endDisplay').addEventListener('click', () => document.getElementById('endDate').showPicker());
+    document.getElementById('startDisplay').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') document.getElementById('startDate').showPicker(); });
+    document.getElementById('endDisplay').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') document.getElementById('endDate').showPicker(); });
+
+    document.getElementById('startDate').addEventListener('change', () => syncDisplay('startDate', 'startDisplay'));
+    document.getElementById('endDate').addEventListener('change', () => syncDisplay('endDate', 'endDisplay'));
+
+    // Render DL chip
+    function renderDLChip() {
+      const container = document.getElementById('attendeeChips');
+      container.innerHTML = '';
+      if (dlIncluded) {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.id = 'dlChip';
+        chip.innerHTML = `
+          <span class="chip-label" title="${DEFAULT_DL_EMAIL}">${DEFAULT_DL_LABEL}</span>
+          <button class="chip-remove" onclick="removeDL()" title="Remove">✕</button>
+        `;
+        container.appendChild(chip);
+      } else {
+        const restore = document.createElement('button');
+        restore.className = 'btn-ghost';
+        restore.style.cssText = 'width:auto;padding:4px 12px;font-size:0.78rem;margin:0;';
+        restore.textContent = '+ Add DL BTP Marketing and Solution SAP Build';
+        restore.onclick = addDL;
+        container.appendChild(restore);
+      }
+    }
+
+    function removeDL() {
+      dlIncluded = false;
+      renderDLChip();
+    }
+
+    function addDL() {
+      dlIncluded = true;
+      renderDLChip();
+    }
+
+    renderDLChip();
+
+    function addEmail(value = '') {
+      const list = document.getElementById('emailList');
+      const row = document.createElement('div');
+      row.className = 'email-row';
+      row.innerHTML = `
+        <input type="email" placeholder="colleague@sap.com" value="${value}" />
+        <button class="btn-icon-remove" onclick="this.parentElement.remove()" title="Remove">✕</button>
+      `;
+      list.appendChild(row);
+    }
+
+    function getExtraEmails() {
+      return [...document.querySelectorAll('.email-row input')]
+        .map(i => i.value.trim())
+        .filter(Boolean);
+    }
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    // Use local date — no UTC conversion so event always lands on the right day
+    function toIcsDate(dateStr) {
+      const [y, m, d] = dateStr.split('-');
+      return `${y}${m}${d}`;
+    }
+
+    function nextDay(dateStr) {
+      const [y, m, d] = dateStr.split('-');
+      const date = new Date(Number(y), Number(m) - 1, Number(d) + 1);
+      return `${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}`;
+    }
+
+    function uid() {
+      return 'ooo-' + Date.now() + '-' + Math.random().toString(36).slice(2) + '@ooo-tool';
+    }
+
+    function nowStamp() {
+      const d = new Date();
+      return `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
+    }
+
+    function buildPersonalIcs(start, end, title, description) {
+      const dtStart = toIcsDate(start);
+      const dtEnd = nextDay(end);
+      const desc = description.replace(/\n/g, '\\n');
+
+      return [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//OOO Tool//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'BEGIN:VEVENT',
+        `UID:${uid()}`,
+        `DTSTAMP:${nowStamp()}`,
+        `DTSTART;VALUE=DATE:${dtStart}`,
+        `DTEND;VALUE=DATE:${dtEnd}`,
+        `SUMMARY:${title}`,
+        desc ? `DESCRIPTION:${desc}` : '',
+        'CLASS:PUBLIC',
+        'TRANSP:OPAQUE',
+        'X-MICROSOFT-CDO-BUSYSTATUS:Busy',
+        'X-MICROSOFT-CDO-ALLDAYEVENT:TRUE',
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].filter(Boolean).join('\r\n');
+    }
+
+    function buildTeamIcs(start, end, title, description, extraEmails) {
+      const dtStart = toIcsDate(start);
+      const dtEnd = nextDay(end);
+      const desc = description.replace(/\n/g, '\\n');
+
+      const allAttendees = [
+        ...(dlIncluded ? [DEFAULT_DL_EMAIL] : []),
+        ...extraEmails
+      ];
+
+      const attendeeLines = allAttendees.map(email =>
+        `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=FALSE:mailto:${email}`
+      );
+
+      return [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//OOO Tool//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:REQUEST',
+        'BEGIN:VEVENT',
+        `UID:${uid()}`,
+        `DTSTAMP:${nowStamp()}`,
+        `DTSTART;VALUE=DATE:${dtStart}`,
+        `DTEND;VALUE=DATE:${dtEnd}`,
+        `SUMMARY:${title}`,
+        desc ? `DESCRIPTION:${desc}` : '',
+        'CLASS:PUBLIC',
+        'TRANSP:TRANSPARENT',
+        'X-MICROSOFT-CDO-BUSYSTATUS:FREE',
+        'X-MICROSOFT-CDO-ALLDAYEVENT:TRUE',
+        'X-MICROSOFT-DISALLOW-COUNTER:TRUE',
+        ...attendeeLines,
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].filter(Boolean).join('\r\n');
+    }
+
+    function triggerDownload(content, filename) {
+      const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function validate() {
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+      const title = document.getElementById('title').value.trim();
+
+      if (!start || !end) { alert('Please select a start and end date.'); return null; }
+      if (new Date(end) < new Date(start)) { alert('End date must be on or after start date.'); return null; }
+      if (!title) { alert('Please enter an event title.'); return null; }
+
+      return {
+        start, end, title,
+        description: document.getElementById('description').value.trim(),
+        extraEmails: getExtraEmails()
+      };
+    }
+
+    function download(type) {
+      const v = validate();
+      if (!v) return;
+
+      const safeName = v.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+      if (type === 'personal' || type === 'both') {
+        triggerDownload(
+          buildPersonalIcs(v.start, v.end, v.title, v.description),
+          `${safeName}_personal_blocker.ics`
+        );
+      }
+
+      if (type === 'team' || type === 'both') {
+        setTimeout(() => {
+          triggerDownload(
+            buildTeamIcs(v.start, v.end, v.title, v.description, v.extraEmails),
+            `${safeName}_team_notification.ics`
+          );
+        }, type === 'both' ? 300 : 0);
+      }
+    }
+  </script>
+</body>
+</html>
